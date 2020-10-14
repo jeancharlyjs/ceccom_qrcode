@@ -1,0 +1,47 @@
+#Perfil del Usuario
+from django.db import models
+from apps.user.models import UserPerfil
+#Utilidades
+from django.utils.translation import ugettext_lazy as _
+from apps.utils.models import CeccomModels
+
+class PerfilUsuario(CeccomModels, models.Model):
+
+    PerfilUsuario = models.OneToOneField(
+        _('Usuario'),
+        UserPerfil,
+    )
+
+    first_name = models.CharField(
+    _('Nombre'),
+     max_length=150,
+     blank=False,
+     error_messages={
+        'unique': _('El campo es requerido')
+     }
+     )
+    last_name = models.CharField(
+    _('Apellidos'),
+     max_length=150,
+     blank=False,
+     error_messages={
+        'unique': _('El campo es requerido')
+     }
+     )
+
+    fechaNacimiento = models.DataTimeField(
+    _('Fecha de Nacimiento'),
+    auto_now_add=False,
+    blank=True,
+    error_messages={
+       'unique': _('El campo es requerido')
+    }
+    )
+    biog = models.TextField(
+    _('Biografia'),
+    max_length=255,
+    blank=True,
+    error_messages={
+       'unique': _('El campo es requerido')
+    }
+    )

@@ -1,0 +1,17 @@
+version: '3'
+services:
+        # postgres-test:
+        #         image: postgres
+        #         environment:
+        #                 - POSTGRES_DB=test
+        #                 - POSTGRES_USER=postgres
+        #                 - POSTGRES_PASSWORD=jean62244032437@
+        django:
+                build: .
+                command: python manage.py runserver 0.0.0.0:8000
+                volumes:
+                        - .:/home/qrceccom
+                ports:
+                        - "8000:8000"
+                # depends_on:
+                #         - postgres-test
