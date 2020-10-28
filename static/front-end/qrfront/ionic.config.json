@@ -1,0 +1,7 @@
+{
+  "name": "qrfront",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

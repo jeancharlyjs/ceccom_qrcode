@@ -4,16 +4,16 @@ from rest_framework.response import Response
 #Models
 from apps.perfilempresa.models import PerfilEmpresa
 
+#Serializers
+from apps.str.serializers import perfilempresaserializers
+
 @api_view(['GET'])
-def Listado(request):
+def ListadoEmpresas(request):
     obj = PerfilEmpresa.objects.all()
     elementos = []
     for i in obj:
-        elementos.append({
-            'Usuario': i.username.username,
-            'Nombre': i.nombre,
-            'URL': "localhost:8000/detalles/"+i.slug+"/",
-        })
+        serializer = perfilempresaserializers.PerfilEmpresaSerializers(i)
+        elementos.append(serializer.data)
     return Response(elementos)
 
 @api_view(['GET'])
@@ -30,3 +30,11 @@ def DetallesEmpresas(request, slug):
             'Estatu': elementos.estatus,
     }
     return Response(context)
+
+#POST
+@api_view(['POST'])
+def CreateEmpresa(request):
+    serializer = perfilempresaserializers.CreateEmpresaSerializers(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    empresa = serializer.save()
+    return Response(perfilempresaserializers.CreateEmpresaSerializers(empresa).data)

@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 #Utilidades
 import qrcode
+import hashlib
 from reportlab.pdfgen import canvas
 from django.utils.text import slugify
 from apps.utils.models import qrCeccomModels
@@ -15,13 +16,13 @@ from apps.perfilempresa.models import PerfilEmpresa
 
 class PerfilVehiculo(qrCeccomModels, models.Model):
 
-    CHASI = RegexValidator(
-            regex=r'\d{11}',
-            message="Requiere 9 o 11 digitos"
+    CHASIS = RegexValidator(
+            regex=r'\w[A-Z0-9]$',
+            message="Requiere 17 digitos alfanumericos"
     )
     MATRICULA = RegexValidator(
-            regex=r'\d{6}',
-            message="Requiere 6 digitos"
+            regex=r'\w[A-Z0-9]$',
+            message="Requiere 6 digitos y una letra mayuscula"
     )
 
     registrado = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -32,14 +33,14 @@ class PerfilVehiculo(qrCeccomModels, models.Model):
             max_length=255,
             help_text=_("Registro de marca"),
             )
-    chasi = models.CharField(
-            _("Numero de Chasi"),
-            max_length=11,
+    chasis = models.CharField(
+            _("Numero de Chasis"),
+            max_length=17,
             blank=False,
             unique=True,
-            validators=[CHASI],
+            validators=[CHASIS],
             error_messages={
-                'unique':_("Chasi ya existe")
+                'unique':_("Chasis ya existe")
                 },
 
     )
@@ -54,7 +55,7 @@ class PerfilVehiculo(qrCeccomModels, models.Model):
                 },
     )
     slug = models.SlugField(
-            max_length=50,
+            max_length=250,
             blank=True,
             unique=True,
             error_messages={
@@ -76,10 +77,10 @@ class PerfilVehiculo(qrCeccomModels, models.Model):
     )
     motor = models.CharField(
             _("Motor"),
-            max_length=11,
+            max_length=6,
             blank=False,
             unique=True,
-            validators=[CHASI],
+            validators=[MATRICULA],
             error_messages={
                 'unique':_("Motor ya existe")
                 },
@@ -154,7 +155,7 @@ class PerfilVehiculo(qrCeccomModels, models.Model):
             max_length=255,
     )
     def __str__(self):
-        return self.chasi
+        return self.chasis
 
     def get_absolute_url(self):
         from django.url import reverse
@@ -163,19 +164,26 @@ class PerfilVehiculo(qrCeccomModels, models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(("%s-%s-%s"%(self.empresa, self.matricula, self.chasi)))
+            #HASH PARA LOS SLUG, DONDE LA INFORMACION ESTARA ENCRIPTADA Y  EVITAR LA DUPLICIDAD.
+            hash = hashlib.sha256()
+            hash.update(('%s-%s'%(self.chasis, self.matricula)).encode('utf-8'))
+            hashing = hash.hexdigest()
+            self.slug = slugify(("%s"%(hashing)))
         super(PerfilVehiculo, self).save(*args, **kwargs)
         if not self.url:
+            #PARA EL NOMBRE DEL DOMINIO SE DEBER ESPECIFICAR EL NOMBRE NO LA IP
+            #DONDE PARA EL REGISTRO DE SLUG Y GENERAR LOS PDF Y PNG, SE DEBE TOMAR
+            #EN CUENTA QUE LA URL ES DE QUIEN SE GENERA LOS ANTES DICHO.
             datos = f'http://10.0.0.5:8000/vehiculos/detalles/{self.slug}'
             #PENSAR QUE EN LA SIGUIENTE LINEA DEBE IR EL SLUG COMO
             #UNA URL
             self.url = slugify(self.slug)
             img = qrcode.make(datos)
-            img.save("static/qrcode/CodigoQR_%s.png"%self.chasi)
+            img.save("static/qrcode/CodigoQR_%s.png"%self.chasis)
             #GENERAR DOCUMENTOS PDF
-            pdf = canvas.Canvas("static/documents_pdf/%s_%s-%s.pdf"%(self.empresa, self.matricula, self.chasi))
+            pdf = canvas.Canvas("static/documents_pdf/%s_%s-%s.pdf"%(self.empresa, self.matricula, self.chasis))
             pdf.drawInlineImage("static/ceccom.jpg", 90,650)
-            pdf.drawInlineImage("static/qrcode/CodigoQR_%s.png"%self.chasi, 80,200)
-            pdf.drawString(250,200, "%s-%s"%(self.chasi, self.matricula))
+            pdf.drawInlineImage("static/qrcode/CodigoQR_%s.png"%self.chasis, 120,250, 400,400)
+            pdf.drawString(250,230, "%s %s-%s"%(self.empresa, self.chasis, self.matricula))
             pdf.save()
             super(PerfilVehiculo, self).save(*args, **kwargs)

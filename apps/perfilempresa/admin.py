@@ -12,13 +12,21 @@ class PerfilEmpresalAdmin(admin.ModelAdmin):
             'logopinture',
             'estatus',
     )
+    search_fields = (
+            'rnc',
+            'nombre',
+    )
+    list_filter = (
+            'estatus',
+
+    )
 class PerfilVehiculoAdmin(admin.ModelAdmin):
     list_display = (
             'registrado',
             'url',
             'empresa',
             'marca',
-            'chasi',
+            'chasis',
             'matricula',
             'slug',
             'color_vehiculo',
@@ -31,6 +39,16 @@ class PerfilVehiculoAdmin(admin.ModelAdmin):
             'tipocombustible',
             'capacidad',
 
+    )
+    search_fields = (
+            'matricula',
+            'chasis',
+            'motor',
+    )
+    list_filter = (
+                'empresa',
+                'registrado',
+                'tipocombustible',
     )
 admin.site.register(PerfilEmpresa, PerfilEmpresalAdmin)
 admin.site.register(PerfilVehiculo, PerfilVehiculoAdmin)

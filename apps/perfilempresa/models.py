@@ -1,4 +1,5 @@
 #Django
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -15,7 +16,7 @@ class PerfilEmpresa(qrCeccomModels, models.Model):
             regex=r'\d{11}',
             message="Requiere 9 o 11 digitos"
     )
-    username = models.ForeignKey(User, on_delete=models.CASCADE)
+    username = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=1)
     rnc = models.CharField(
             _('RNC'),
             blank=False,
@@ -31,6 +32,7 @@ class PerfilEmpresa(qrCeccomModels, models.Model):
             _("Nombr Empresa"),
             blank=False,
             max_length=255,
+            unique=True,
             help_text=_("Registrar Nombre empresa"),
             )
     direccion = models.TextField(
@@ -59,14 +61,14 @@ class PerfilEmpresa(qrCeccomModels, models.Model):
     )
     logopinture = models.ImageField(
             _("Logo Empresa"),
-            blank=False,
+            blank=True,
             upload_to="static/logos"
     )
 
     STATUS = (
             ('N', "Normalizado"),
             ('I', "Investigacion"),
-            ('C', "Claururada"),
+            ('C', "Clausurada"),
     )
     estatus = models.CharField(
             _("Estatus"),
@@ -84,7 +86,7 @@ class PerfilEmpresa(qrCeccomModels, models.Model):
         return reverse('perfilempresa:detalles',
                         args=[self.slug])
 
-    #Guardar de forma automatica el slug tomando RNC
+    #Guardar de forma automatica el slug tomando Nombre y RNC
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(("%s-%s"%(self.nombre, self.rnc)))
